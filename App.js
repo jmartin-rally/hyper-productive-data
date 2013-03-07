@@ -5,6 +5,7 @@ Ext.define('CustomApp', {
     items: [
         {xtype:'container', itemId: 'iteration_selector_box'},
         {xtype:'container',itemId:'summary_grid_box'},
+        {xtype: 'container', itemId: 'separator', margin: 25, padding: 25, html: "--" },
         {xtype:'container',itemId:'artifact_grid_box'}
     ],
     artifacts: [],
@@ -32,6 +33,9 @@ Ext.define('CustomApp', {
         this.artifacts = {};
         this.date_array = [];
         
+        if ( this.summary_grid ) { this.summary_grid.destroy(); }
+        if ( this.down('#artifact_grid') ) { this.down('#artifact_grid').destroy(); }
+
         Ext.create('Rally.data.WsapiDataStore', {
             autoLoad: true,
             fetch: ['ObjectID','EndDate','StartDate'],
@@ -75,7 +79,7 @@ Ext.define('CustomApp', {
             autoLoad: true,
             fetch: [
                 '_PreviousValues','Iteration','ObjectID','Name','PlanEstimate',
-                'cf_EffortNotAccepted','cf_FoundWork','ScheduleState'
+                'c_cfEffortNotAccepted','c_cfFoundWork','ScheduleState'
             ],
             hydrate: ['ScheduleState'],
             filters: query,
@@ -89,8 +93,9 @@ Ext.define('CustomApp', {
                                 Name: snap.get('Name'),
                                 ObjectID: snap.get('ObjectID'),
                                 FirstPlanEstimate: snap.get('PlanEstimate'),
-                                cf_EffortNotAccepted: snap.get('cf_EffortNotAccepted'),
-                                cf_FoundWork: snap.get('cf_FoundWork')
+                                cfEffortNotAccepted: snap.get('c_cfEffortNotAccepted'),
+                                cfFoundWork: snap.get('c_cfFoundWork'),
+                                ScheduleState: snap.get('ScheduleState')
                             });
                         }
                         me.artifacts[snap.get('ObjectID')].addDailySnap(midnight,snap);
@@ -98,23 +103,120 @@ Ext.define('CustomApp', {
                     if ( date_array.length > 0 ) {
                         this._getEndOfOneDaySnaps(date_array,iteration_ids);
                     } else {
-                        this._doSomething();
+                        this._showSummary();
+                        this._showDetails();
                     }
                 },
                 scope: this
             }
         });
     },
-    _doSomething:function(){
-        window.console & console.log(this.date_array[0],this.artifacts);
+    _wasThereOnDayOne: function(artifact) {
+        var there_on_day_one = false;
+        if (artifact.getSnapByDate(this.date_array[0])){
+            there_on_day_one = true;
+        }
+        return there_on_day_one;
+    },
+    _showSummary:function() {
+        window.console && console.log("_showSummary",this.date_array[0],this.artifacts);
+        var me = this;
+        var original_commitment = 0;
+        var velocity = 0;
+        var effort = 0;
+        var found_estimate = 0;
+        var adopted_estimate = 0;
+        for (var artifact_id in this.artifacts ) {
+            if ( this.artifacts.hasOwnProperty(artifact_id)) {
+                var artifact = this.artifacts[artifact_id];
+                
+                if ( me._wasThereOnDayOne(artifact) ) {
+                    original_commitment += artifact.get('FirstPlanEstimate');
+                }
+                found_estimate += artifact.get('cfFoundWork');
+                
+                if ((artifact.get('ScheduleState') === "Accepted")&&(me._wasThereOnDayOne(artifact)) ) {
+                    velocity += artifact.get('FirstPlanEstimate');
+                }
+                if (artifact.get('ScheduleState') !== "Accepted"){
+                    effort += artifact.get('cfEffortNotAccepted');
+                }
+                if (!me._wasThereOnDayOne(artifact)){
+                    adopted_estimate += artifact.get('LastPlanEstimate');
+                }
+            }
+        }
+        
+        var pass_fail = "PASS";
+        
+        if ( ( ( adopted_estimate + found_estimate ) / original_commitment ) > 0.2 ) {
+            pass_fail = "FAIL";
+        }
+        if (( velocity / original_commitment ) < 0.8 ) {
+            pass_fail = "FAIL";
+        }
+        var data = [{ 
+            original_commitment: "&Sigma;estimate day one",
+            velocity: "&Sigma;estimate day one for accepted",
+            effort: "&Sigma;cfEffortNotAccepted for not accepted",
+            found_estimate: "&Sigma;cfFoundWork",
+            adopted_estimate: "&Sigma;estimate items not on day one",
+            capacity_estimate: "velocity+estimate",
+            total_commitment: "original commitment + adopted estimate + found estimate",
+            focus_factor: "velocity/(velocity+effort)",
+            adopted_work: "adopted estimate/original commitment",
+            found_work: "found estimate/original commitment",
+            commitment_accuracy: "(orig_commitment + adopted_est + found_est) / orig_commitment",
+            pass_fail: "( ( adopted_estimate + found_estimate ) / original_commitment ) > 0.2  OR ( velocity / original_commitment ) < 0.8"
+        },
+        { 
+            original_commitment: original_commitment,
+            velocity: velocity,
+            effort: effort,
+            found_estimate: found_estimate,
+            adopted_estimate: adopted_estimate,
+            capacity_estimate: velocity + effort,
+            total_commitment: original_commitment + adopted_estimate + found_estimate,
+            focus_factor: velocity / (velocity + effort),
+            adopted_work: adopted_estimate / original_commitment,
+            found_work: found_estimate / original_commitment,
+            commitment_accuracy: ( original_commitment + adopted_estimate + found_estimate ) / original_commitment,
+            pass_fail: pass_fail
+        }];
+        
+        var columns = [
+            {text:'Original Commitment',dataIndex:'original_commitment'},
+            {text:'Velocity',dataIndex:'velocity'},
+            {text:'Effort Not Accepted',dataIndex:'effort'},
+            {text:'Found Estimate', dataIndex: 'found_estimate' },
+            {text:'Adopted Estimate', dataIndex: 'adopted_estimate'},
+            {text:'Capacity', dataIndex: 'capacity_estimate'},
+            {text:'Total Commitment', dataIndex: 'total_commitment'},
+            {text:'Focus Factor', dataIndex: 'focus_factor'},
+            {text:'Adopted Work', dataIndex: 'adopted_work'},
+            {text:'Found Work', dataIndex: 'found_work'},
+            {text:'Commitment Accuracy', dataIndex: 'commitment_accuracy'},
+            {text:'Pass/Fail', dataIndex: 'pass_fail' }
+        ];
+        
+        var store = Ext.create('Rally.data.custom.Store',{data: data});
+        this.summary_grid = Ext.create('Rally.ui.grid.Grid',{
+            showPagingToolbar: false,
+            store:store,columnCfgs:columns}
+        );
+        this.down('#summary_grid_box').add(this.summary_grid);
+    },
+    _showDetails:function(){
+        window.console && console.log(this.date_array[0],this.artifacts);
         var temp_array = [];
         var me = this;
         var columns = [
             {text: "Name", dataIndex: "Name", flex: 1 },
             {text: "OriginalEstimate", dataIndex: 'FirstPlanEstimate'},
             {text: "LastEstimate", dataIndex: 'LastPlanEstimate'},
-            {text: 'cf_EffortNotAccepted', dataIndex: 'cf_EffortNotAccepted'},
-            {text: 'cf_FoundWork', dataIndex: 'cf_FoundWork'}
+            {text: "ScheduleState", dataIndex: 'ScheduleState'},
+            {text: 'cfEffortNotAccepted', dataIndex: 'cfEffortNotAccepted'},
+            {text: 'cfFoundWork', dataIndex: 'cfFoundWork'}
         ];
         Ext.Array.each( this.date_array, function(midnight){
             var stripped_date = midnight.replace(/T.*$/,"");
@@ -133,31 +235,10 @@ Ext.define('CustomApp', {
         
         this.down('#artifact_grid_box').add({
             xtype: 'rallygrid',
+            itemId: 'artifact_grid',
             store: store,
             columnCfgs: columns
         });
         
-    },
-    _getSnapshots: function(iteration_ids) {
-        window.console && console.log("_getSnapshots", iteration_ids);
-        // find artifacts that entered or left the iteration
-        var query = [];
-        query.push({property: 'Iteration', operator: 'in', value: iteration_ids});
-        Ext.create('Rally.data.lookback.SnapshotStore', {
-           autoLoad: true,
-           fetch: ['_PreviousValues','Iteration','ObjectID','Name'],
-           filters: query,
-           listeners: {
-                load: function(store,data,success) {
-                    window.console && console.log(data);
-                    Ext.Array.each( data, function(snap){
-                        // only care about the times at which the change happened
-                        if (typeof(snap.get('_PreviousValues').Iteration) !== "undefined") {
-                            window.console && console.log(typeof(snap.get('_PreviousValues').Iteration),snap.get('_PreviousValues').Iteration,snap.get('Iteration'),snap.get('Name'));
-                        }
-                    });
-                }
-           }
-        });
     }
 });

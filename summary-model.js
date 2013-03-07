@@ -6,8 +6,9 @@ Ext.define('Rally.pxs.data.SummaryModel',{
          { name: 'Name', type: 'STRING' },
          { name: 'FirstPlanEstimate', type: 'NUMBER', defaultValue: 0},
          { name: 'LastPlanEstimate', type: 'NUMBER', defaultValue: 0},
-         { name: 'cf_EffortNotAccepted', type: 'NUMBER', defaultValue:0},
-         { name: 'cf_FoundWork', type: 'NUMBER', defaultValue:0 }
+         { name: 'cfEffortNotAccepted', type: 'NUMBER', defaultValue:0},
+         { name: 'cfFoundWork', type: 'NUMBER', defaultValue:0 },
+         { name: 'ScheduleState', type: 'STRING', defaultValue: ""}
      ],
      hasMany: [{ model: 'pxsdailysnap', name: 'DailySnaps' }],
      addDailySnap: function(midnight,snap) {
@@ -15,8 +16,9 @@ Ext.define('Rally.pxs.data.SummaryModel',{
             EndDate: midnight
         });
         this.set('LastPlanEstimate', snap.get('PlanEstimate'));
-        this.set('cf_EffortNotAccepted', snap.get('cf_EffortNotAccepted'));
-        this.set('cf_FoundWork', snap.get('cf_FoundWork'));
+        this.set('cfEffortNotAccepted', snap.get('c_cfEffortNotAccepted'));
+        this.set('cfFoundWork', snap.get('c_cfFoundWork'));
+        this.set('ScheduleState', snap.get('ScheduleState'));
         
         this.set(midnight.replace(/T.*$/,""), "X");
         if ( this.get('DailySnaps') ) {
@@ -29,7 +31,7 @@ Ext.define('Rally.pxs.data.SummaryModel',{
         var snap = null;
         var me = this;
         Ext.Array.each(me.get('DailySnaps'), function(potential_snap){
-            if (potential_snap.getDate() === snap_date ) {
+            if (potential_snap.get('EndDate') === snap_date ) {
                 snap = potential_snap;
             }
         });
