@@ -14,6 +14,9 @@ Ext.define('CustomApp', {
         this._addIterationSelector();
         this._addExportButton();
     },
+    _ratioRenderer: function(value, metaData, record, rowIndex, colIndex, store, view) {
+        return Math.round( value * 100 ) + "%";
+    },
     _addIterationSelector: function() {
         this.down('#selectors_box').add({ 
             xtype:'rallyiterationcombobox', 
@@ -237,12 +240,12 @@ Ext.define('CustomApp', {
             {text:'Adopted Estimate', dataIndex: 'adopted_estimate'},
             {text:'Capacity', dataIndex: 'capacity_estimate'},
             {text:'Total Commitment', dataIndex: 'total_commitment'},
-            {text:'Focus Factor', dataIndex: 'focus_factor'},
-            {text:'Adopted Work', dataIndex: 'adopted_work'},
-            {text:'Found Work', dataIndex: 'found_work'},
-            {text:'Commitment Accuracy', dataIndex: 'commitment_accuracy'},
-            {text:'Accepted Percentage', dataIndex: 'accepted_ratio' },
-            {text:'Commitment Variation Percentage', dataIndex: 'commitment_variation_ratio' }
+            {text:'Focus Factor', dataIndex: 'focus_factor', renderer: this._ratioRenderer},
+            {text:'Adopted Work', dataIndex: 'adopted_work', renderer: this._ratioRenderer},
+            {text:'Found Work', dataIndex: 'found_work', renderer: this._ratioRenderer},
+            {text:'Commitment Accuracy', dataIndex: 'commitment_accuracy', renderer: this._ratioRenderer},
+            {text:'Accepted Percentage', dataIndex: 'accepted_ratio' , renderer: this._ratioRenderer},
+            {text:'Commitment Variation Percentage', dataIndex: 'commitment_variation_ratio' , renderer: this._ratioRenderer}
         ];
         
         var store = Ext.create('Rally.data.custom.Store',{data: data});
