@@ -209,7 +209,7 @@
                 items: [
                     {xtype:'container', itemId: 'selectors_box', layout: { type: 'hbox' } },
                     {xtype:'container',itemId:'summary_grid_box'},
-                    {xtype: 'container', itemId: 'separator', margin: 25, padding: 25, html: "--" },
+                    {xtype: 'container', itemId: 'separator', margin: 10 },
                     {xtype:'container',itemId:'artifact_grid_box'}
                 ],
                 artifacts: [],
@@ -275,18 +275,36 @@
                     if (iterations.length > 0) {
                         var iteration_start = iterations[0].get('StartDate');
                         var iteration_end = iterations[0].get('EndDate');
-                        var date_array = [];
-                        var midnight = iteration_start;
-                        while ( midnight < iteration_end ) {
-                            midnight = Rally.util.DateTime.add(midnight,"day",1);
-                            date_array.push(Rally.util.DateTime.toIsoString(midnight,false));
+                        
+                        var today = new Date();
+                        if ( today < iteration_start ) {
+                            this.down('#artifact_grid_box').add({
+                                xtype: 'container',
+                                itemId: 'artifact_grid',
+                                html: "The iteration has not yet begun"
+                            });
+                        } else if ( today < iteration_end ) {
+                            this.down('#artifact_grid_box').add({
+                                xtype: 'container',
+                                itemId: 'artifact_grid',
+                                html: "The iteration is in progress"
+                            });
+                        } else {
+                            
+                        
+                            var date_array = [];
+                            var midnight = iteration_start;
+                            while ( midnight < iteration_end ) {
+                                midnight = Rally.util.DateTime.add(midnight,"day",1);
+                                date_array.push(Rally.util.DateTime.toIsoString(midnight,false));
+                            }
+                            var iteration_ids = [];
+                            Ext.Array.each(iterations,function(iteration){
+                                iteration_ids.push( iteration.get('ObjectID'));
+                            });
+                            this.date_array = Ext.Array.clone(date_array);
+                            this._getEndOfOneDaySnaps(date_array,iteration_ids);
                         }
-                        var iteration_ids = [];
-                        Ext.Array.each(iterations,function(iteration){
-                            iteration_ids.push( iteration.get('ObjectID'));
-                        });
-                        this.date_array = Ext.Array.clone(date_array);
-                        this._getEndOfOneDaySnaps(date_array,iteration_ids);
                     } else {
                         window.console && console.log("no sprints found");
                     }
@@ -355,6 +373,7 @@
                                 var me = this;
                                 Ext.Array.each(data,function(snap) {
                                     me.artifacts[snap.get('ObjectID')].set('LastPlanEstimate',snap.get('PlanEstimate'));
+                                    me.artifacts[snap.get('ObjectID')].set('cfEffortNotAccepted',snap.get('PlanEstimate'));
                                 });
                                 this._showSummary();
                                 this._showDetails();
