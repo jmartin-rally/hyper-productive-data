@@ -4,6 +4,7 @@
     "server": "https://rally1.rallydev.com",
     "sdk": "2.0p5",
     "javascript": [
+        "grid-exporter.js",
         "daily-snap-model.js",
         "summary-model.js",
         "App.js"
