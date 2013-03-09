@@ -195,14 +195,10 @@ Ext.define('CustomApp', {
         }
         
         var pass_fail = "PASS";
-        
-        if ( ( ( adopted_estimate + found_estimate ) / original_commitment ) > 0.2 ) {
-            pass_fail = "FAIL";
-        }
-        if (( velocity / original_commitment ) < 0.8 ) {
-            pass_fail = "FAIL";
-        }
-        var data = [{ 
+        var accepted_ratio =  ( adopted_estimate + found_estimate ) / original_commitment ;
+        var commitment_variation_ratio = ( velocity / original_commitment );
+
+        var data = [/*{ 
             original_commitment: "&Sigma;estimate day one",
             velocity: "&Sigma;estimate day one for accepted",
             effort: "&Sigma;cfEffortNotAccepted for not accepted",
@@ -214,8 +210,9 @@ Ext.define('CustomApp', {
             adopted_work: "adopted estimate/original commitment",
             found_work: "found estimate/original commitment",
             commitment_accuracy: "(orig_commitment + adopted_est + found_est) / orig_commitment",
-            pass_fail: "( ( adopted_estimate + found_estimate ) / original_commitment ) > 0.2  OR ( velocity / original_commitment ) < 0.8"
-        },
+            accepted_ratio: "( adopted_estimate + found_estimate ) / original_commitment",
+            commitment_variation_ratio: "( velocity / original_commitment )"
+        },*/
         { 
             original_commitment: original_commitment,
             velocity: velocity,
@@ -228,7 +225,8 @@ Ext.define('CustomApp', {
             adopted_work: adopted_estimate / original_commitment,
             found_work: found_estimate / original_commitment,
             commitment_accuracy: ( original_commitment + adopted_estimate + found_estimate ) / original_commitment,
-            pass_fail: pass_fail
+            accepted_ratio: accepted_ratio,
+            commitment_variation_ratio: commitment_variation_ratio
         }];
         
         var columns = [
@@ -243,7 +241,8 @@ Ext.define('CustomApp', {
             {text:'Adopted Work', dataIndex: 'adopted_work'},
             {text:'Found Work', dataIndex: 'found_work'},
             {text:'Commitment Accuracy', dataIndex: 'commitment_accuracy'},
-            {text:'Pass/Fail', dataIndex: 'pass_fail' }
+            {text:'Accepted Percentage', dataIndex: 'accepted_ratio' },
+            {text:'Commitment Variation Percentage', dataIndex: 'commitment_variation_ratio' }
         ];
         
         var store = Ext.create('Rally.data.custom.Store',{data: data});
