@@ -197,12 +197,10 @@ Ext.define('CustomApp', {
         for (var artifact_id in this.artifacts ) {
             if ( this.artifacts.hasOwnProperty(artifact_id)) {
                 var artifact = this.artifacts[artifact_id];
-                
+                found_estimate += artifact.get('EstimateDelta');
                 if ( me._wasThereOnDayOne(artifact) ) {
                     original_commitment += artifact.get('FirstPlanEstimate');
-                    found_estimate += artifact.get('EstimateDelta');
                 }
-                
                 
                 // if ((artifact.get('ScheduleState') === "Accepted")&&(me._wasThereOnDayOne(artifact)) ) {
                 if (artifact.get('ScheduleState') === "Accepted") {
