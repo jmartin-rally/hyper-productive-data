@@ -79,7 +79,7 @@ Ext.define('CustomApp', {
                     itemId: 'artifact_grid',
                     html: "The iteration has not yet begun"
                 });
-            } else if ( today < iteration_end ) {
+            } else if ( Rally.util.DateTime.add(today,"day",1) <= iteration_end ) {
                 this.down('#artifact_grid_box').add({
                     xtype: 'container',
                     itemId: 'artifact_grid',
@@ -204,7 +204,8 @@ Ext.define('CustomApp', {
                 }
                 
                 
-                if ((artifact.get('ScheduleState') === "Accepted")&&(me._wasThereOnDayOne(artifact)) ) {
+                // if ((artifact.get('ScheduleState') === "Accepted")&&(me._wasThereOnDayOne(artifact)) ) {
+                if (artifact.get('ScheduleState') === "Accepted") {
                     velocity += artifact.get('FirstPlanEstimate');
                 }
                 if (artifact.get('ScheduleState') !== "Accepted"){
