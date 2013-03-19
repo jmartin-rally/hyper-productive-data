@@ -169,7 +169,7 @@ Ext.define('CustomApp', {
                     var me = this;
                     Ext.Array.each(data,function(snap) {
                         me.artifacts[snap.get('ObjectID')].set('LastPlanEstimate',snap.get('PlanEstimate'));
-                        me.artifacts[snap.get('ObjectID')].set('cfEffortNotAccepted',snap.get('PlanEstimate'));
+                        me.artifacts[snap.get('ObjectID')].set('cfEffortNotAccepted',snap.get('c_cfEffortNotAccepted'));
                     });
                     this._showSummary();
                     this._showDetails();
