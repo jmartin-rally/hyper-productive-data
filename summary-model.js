@@ -17,7 +17,7 @@ Ext.define('Rally.pxs.data.SummaryModel',{
             EndDate: midnight
         });
         this.set('LastPlanEstimate', snap.get('PlanEstimate'));
-        this.set('cfEffortNotAccepted', snap.get('c_cfEffortNotAccepted'));
+        this.set('cfEffortNotAccepted', snap.get('c_EffortNotAccepted'));
         this.set('cfFoundWork', snap.get('c_cfFoundWork'));
         this.set('ScheduleState', snap.get('ScheduleState'));
         

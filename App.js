@@ -114,7 +114,7 @@ Ext.define('CustomApp', {
             autoLoad: true,
             fetch: [
                 '_PreviousValues','Iteration','ObjectID','Name','PlanEstimate',
-                'c_cfEffortNotAccepted','c_cfFoundWork','ScheduleState'
+                'c_EffortNotAccepted','c_cfFoundWork','ScheduleState'
             ],
             hydrate: ['ScheduleState'],
             filters: query,
@@ -128,7 +128,7 @@ Ext.define('CustomApp', {
                                 Name: snap.get('Name'),
                                 ObjectID: snap.get('ObjectID'),
                                 FirstPlanEstimate: snap.get('PlanEstimate'),
-                                cfEffortNotAccepted: snap.get('c_cfEffortNotAccepted'),
+                                cfEffortNotAccepted: snap.get('c_EffortNotAccepted'),
                                 cfFoundWork: snap.get('c_cfFoundWork'),
                                 ScheduleState: snap.get('ScheduleState')
                             });
@@ -159,7 +159,7 @@ Ext.define('CustomApp', {
             autoLoad:true,
             fetch:  [
                 '_PreviousValues','Iteration','ObjectID','Name','PlanEstimate',
-                'c_cfEffortNotAccepted','c_cfFoundWork','ScheduleState'
+                'c_EffortNotAccepted','c_cfFoundWork','ScheduleState'
             ],
             hydrate: ['ScheduleState'],
             filters: query,
@@ -169,7 +169,7 @@ Ext.define('CustomApp', {
                     var me = this;
                     Ext.Array.each(data,function(snap) {
                         me.artifacts[snap.get('ObjectID')].set('LastPlanEstimate',snap.get('PlanEstimate'));
-                        me.artifacts[snap.get('ObjectID')].set('cfEffortNotAccepted',snap.get('c_cfEffortNotAccepted'));
+                        me.artifacts[snap.get('ObjectID')].set('cfEffortNotAccepted',snap.get('c_EffortNotAccepted'));
                     });
                     this._showSummary();
                     this._showDetails();
@@ -216,8 +216,8 @@ Ext.define('CustomApp', {
         }
         
         var pass_fail = "PASS";
-        var accepted_ratio =  ( adopted_estimate + found_estimate ) / original_commitment ;
-        var commitment_variation_ratio = ( velocity / original_commitment );
+        var commitment_variation_ratio =  ( adopted_estimate + found_estimate ) / original_commitment ;
+        var accepted_ratio = ( velocity / original_commitment );
 
         var data = [/*{ 
             original_commitment: "&Sigma;estimate day one",
